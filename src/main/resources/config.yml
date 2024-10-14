@@ -1,0 +1,5 @@
+credentials:
+  database: "test"
+  password: ""
+  host: "localhost"
+  user: "root"
