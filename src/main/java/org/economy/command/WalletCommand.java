@@ -1,6 +1,7 @@
 package org.economy.command;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,9 +20,9 @@ public class WalletCommand extends Command {
     }
 
     private void showMoney(CommandSender commandSender, Player player) {
-        economyPlugin.walletService.getWalletByPlayer(player).thenAccept((wallet) -> {
-            commandSender.sendMessage("Seu money é: " + wallet.getBalance().toString());
-        });
+//        economyPlugin.walletService.getWalletByPlayer(player).thenAccept((wallet) -> {
+//            commandSender.sendMessage("Seu money é: " + wallet.getBalance().toString());
+//        });
     }
 
     @Override
@@ -37,16 +38,13 @@ public class WalletCommand extends Command {
                 return false;
             }
 
-            Player playerReceiver = Bukkit.getPlayer(args[1]);
+            OfflinePlayer playerReceiver = Bukkit.getOfflinePlayer(args[1]);
             if (playerReceiver == null) {
                 commandSender.sendMessage("O usuário está off");
                 return false;
             }
             if (args.length == 2) {
                 Player playerSender = (Player) commandSender;
-                economyPlugin.walletService.getWalletByPlayer(playerSender).thenAccept((wallet) -> {
-
-                });
                 BigDecimal convertedValue;
                 try {
                     convertedValue = ParserUtils.parseToBigDecimal(args[1]);
@@ -55,12 +53,7 @@ public class WalletCommand extends Command {
                     return false;
                 }
 
-                if (currentSenderMoney.compareTo(convertedValue) < 0) {
-                    commandSender.sendMessage("Você não tem dinheiro o suficiente para realizar a transação");
-                    return false;
-                }
-
-                economyPlugin.walletService.sendMoney(playerSender, playerReceiver, convertedValue);
+                economyPlugin.walletService.sendMoney(playerSender, playerReceiver.getUniqueId(), convertedValue);
             }
         }
 

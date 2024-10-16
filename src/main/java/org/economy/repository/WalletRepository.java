@@ -4,6 +4,7 @@ import org.economy.EconomyPlugin;
 import org.economy.model.Wallet;
 import org.economy.parser.ParserUtils;
 
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,6 +21,7 @@ public class WalletRepository {
 
     private static final String SELECT_QUERY = "SELECT * FROM WALLET WHERE UUID = ?";
     private static final String SELECT_ALL_QUERY = "SELECT * FROM WALLET";
+    private static final String UPDATE_WALLET_VALUE_QUERY = "UPDATE WALLET SET BALANCE WHERE uuid = ?";
 
     public WalletRepository(EconomyPlugin economyPlugin) {
         this.economyPlugin = economyPlugin;
@@ -57,6 +59,16 @@ public class WalletRepository {
                     "Alguma coisa deu errada na query");
             }
             return null;
+        });
+    }
+
+    public CompletableFuture<Wallet> updateWalletValue(UUID key, BigDecimal value) {
+        return CompletableFuture.supplyAsync(() -> {
+          try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
+
+          } catch(Exception e) {
+
+          }
         });
     }
 }

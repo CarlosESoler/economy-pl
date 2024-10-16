@@ -17,7 +17,7 @@ public class WalletListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        economyPlugin.walletService.fetchWallet(event.getPlayer()).whenComplete(((wallet, error) -> {
+        economyPlugin.walletService.fetchWallet(event.getPlayer().getUniqueId()).whenComplete(((wallet, error) -> {
             if(error != null) {
                 Throwables.propagate(error);
                 return;
@@ -28,6 +28,6 @@ public class WalletListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-
+        economyPlugin.walletService.removeCache(event.getPlayer().getUniqueId());
     }
 }

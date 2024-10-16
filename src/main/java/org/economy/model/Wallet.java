@@ -1,6 +1,7 @@
 package org.economy.model;
 
 import lombok.Data;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.economy.parser.ParserUtils;
 
