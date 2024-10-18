@@ -13,9 +13,10 @@ public class MySqlStorage {
 
     public boolean startConnection(SqlCredentials sqlCredentials) {
         final String url = "jdbc:mysql://" + sqlCredentials.host() + "/" + sqlCredentials.database();
+        String password = !sqlCredentials.password().isEmpty() ? sqlCredentials.password() : null;
 
         try {
-            connection = DriverManager.getConnection(url, sqlCredentials.user(), sqlCredentials.password());
+            connection = DriverManager.getConnection(url, sqlCredentials.user(), password);
             return true;
         } catch (SQLException exception) {
             Bukkit.getLogger().log(

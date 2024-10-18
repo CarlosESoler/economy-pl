@@ -14,7 +14,7 @@ public class ParserUtils {
             return BigDecimal.valueOf(parseToDouble);
         } catch (NumberFormatException e) {
             Bukkit.getLogger().log(Level.WARNING,
-                "Ocorreu um erro ao dar um parse ai");
+                "Ocorreu um erro ao dar o parse");
         }
         return null;
     }

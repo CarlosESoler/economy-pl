@@ -36,6 +36,6 @@ public class WalletListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        economyPlugin.walletService.removeCache(event.getPlayer().getUniqueId());
+        economyPlugin.walletService.removeWalletOnCache(event.getPlayer().getUniqueId());
     }
 }

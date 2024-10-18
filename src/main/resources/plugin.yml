@@ -1,0 +1,4 @@
+main: org.economy.EconomyPlugin
+name: EconomyPlugin
+version: 1.0.0
+author: cesoler

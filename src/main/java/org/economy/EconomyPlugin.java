@@ -1,12 +1,15 @@
 package org.economy;
 
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.economy.command.WalletCommand;
 import org.economy.datautils.database.MySqlStorage;
 import org.economy.datautils.database.StorageConfigConnector;
+import org.economy.listener.WalletListener;
 import org.economy.repository.WalletRepository;
 import org.economy.service.WalletService;
+import org.economy.util.CommandMapFetcher;
 
 @Getter
 public class EconomyPlugin extends JavaPlugin {
@@ -14,8 +17,6 @@ public class EconomyPlugin extends JavaPlugin {
     public WalletService walletService;
     public WalletRepository walletRepository;
     public MySqlStorage mySqlStorage;
-    public WalletCommand walletCommand;
-
 
     @Override
     public void onEnable() {
@@ -24,8 +25,9 @@ public class EconomyPlugin extends JavaPlugin {
         walletRepository = new WalletRepository(this);
         mySqlStorage = new StorageConfigConnector(this).establishConnection();
 
-        walletCommand = new WalletCommand(this);
+        Bukkit.getPluginManager().registerEvents(new WalletListener(this), this);
 
+        CommandMapFetcher.registerCommands(new WalletCommand(this));
         System.out.printf("Economy plugin enabled!");
     }
 }

@@ -1,15 +1,13 @@
 package org.economy.repository;
 
+import org.bukkit.Bukkit;
 import org.economy.EconomyPlugin;
 import org.economy.model.Wallet;
-import org.economy.parser.ParserUtils;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +20,7 @@ public class WalletRepository {
     private static final String SELECT_QUERY = "SELECT * FROM WALLET WHERE UUID = ?";
     private static final String SELECT_ALL_QUERY = "SELECT * FROM WALLET";
     private static final String UPDATE_WALLET_VALUE_QUERY = "UPDATE WALLET SET BALANCE = ? WHERE uuid = ?";
-    private static final String INSERT_WALLET = "INSERT INTO WALLET VALUES(?, ?)";
+    private static final String INSERT_WALLET_QUERY = "REPLACE INTO WALLET VALUES(?, ?)";
 
     public WalletRepository(EconomyPlugin economyPlugin) {
         this.economyPlugin = economyPlugin;
@@ -80,24 +78,24 @@ public class WalletRepository {
         } catch(Exception e) {
             economyPlugin.getLogger().log(Level.WARNING,
                 "Alguma coisa deu errada na query");
-            return false;
         }
+        return false;
     }
 
-    public CompletableFuture<Wallet> saveWalletAsync(Wallet wallet) {
+    public CompletableFuture<Boolean> saveWalletAsync(Wallet wallet) {
         return CompletableFuture.supplyAsync(() -> saveWallet(wallet));
     }
 
-    public Wallet saveWallet(Wallet wallet) {
-        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
+    public Boolean saveWallet(Wallet wallet) {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(INSERT_WALLET_QUERY)) {
             preparedStatement.setObject(1, wallet.getUuid().toString());
             preparedStatement.setObject(2, wallet.getBalance());
             preparedStatement.executeUpdate();
-            return wallet;
+            return true;
         } catch(Exception e) {
-            economyPlugin.getLogger().log(Level.WARNING,
-                "Alguma coisa deu errada na query");
+            Bukkit.getLogger().log(Level.SEVERE,
+                "Alguma coisa deu errada na query", e);
         }
-        return null;
+        return false;
     }
 }
