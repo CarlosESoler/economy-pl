@@ -21,54 +21,83 @@ public class WalletRepository {
 
     private static final String SELECT_QUERY = "SELECT * FROM WALLET WHERE UUID = ?";
     private static final String SELECT_ALL_QUERY = "SELECT * FROM WALLET";
-    private static final String UPDATE_WALLET_VALUE_QUERY = "UPDATE WALLET SET BALANCE WHERE uuid = ?";
+    private static final String UPDATE_WALLET_VALUE_QUERY = "UPDATE WALLET SET BALANCE = ? WHERE uuid = ?";
+    private static final String INSERT_WALLET = "INSERT INTO WALLET VALUES(?, ?)";
 
     public WalletRepository(EconomyPlugin economyPlugin) {
         this.economyPlugin = economyPlugin;
     }
 
-    public CompletableFuture<Wallet> fetchByKey(UUID id) {
-        return CompletableFuture.supplyAsync(() -> {
-            try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(SELECT_QUERY)) {
-                preparedStatement.setString(1, id.toString());
-                try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if(resultSet.next()) {
-                        return Wallet.parseFromResultSet(resultSet);
-                    }
-                }
-            } catch (Exception e) {
-                economyPlugin.getLogger().log(Level.WARNING,
-                    "Alguma coisa deu errada na query");
-            }
-            return null;
-        });
+    public CompletableFuture<Wallet> fetchByKeyAsync(UUID key) {
+        return CompletableFuture.supplyAsync(() -> fetchByKey(key));
     }
 
-    public CompletableFuture<List<Wallet>> fetchAll() {
-        return CompletableFuture.supplyAsync(() -> {
-            try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(SELECT_ALL_QUERY)) {
-                try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                    List<Wallet> wallets = new ArrayList<>();
-                    while(resultSet.next()) {
-                        wallets.add(Wallet.parseFromResultSet(resultSet));
-                    }
-                    return wallets;
+    public Wallet fetchByKey(UUID key) {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(SELECT_QUERY)) {
+            preparedStatement.setString(1, key.toString());
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                if(resultSet.next()) {
+                    return Wallet.parseFromResultSet(resultSet);
                 }
-            } catch (Exception e) {
-                economyPlugin.getLogger().log(Level.WARNING,
-                    "Alguma coisa deu errada na query");
             }
-            return null;
-        });
+        } catch (Exception e) {
+            economyPlugin.getLogger().log(Level.WARNING,
+                "Alguma coisa deu errada na query");
+        }
+        return null;
     }
 
-    public CompletableFuture<Wallet> updateWalletValue(UUID key, BigDecimal value) {
-        return CompletableFuture.supplyAsync(() -> {
-          try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
+    public CompletableFuture<List<Wallet>> fetchAllAsync() {
+        return CompletableFuture.supplyAsync(() -> fetchAll());
+    }
 
-          } catch(Exception e) {
+    public List<Wallet> fetchAll() {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(SELECT_ALL_QUERY)) {
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                List<Wallet> wallets = new ArrayList<>();
+                while(resultSet.next()) {
+                    wallets.add(Wallet.parseFromResultSet(resultSet));
+                }
+                return wallets;
+            }
+        } catch (Exception e) {
+            economyPlugin.getLogger().log(Level.WARNING,
+                "Alguma coisa deu errada na query");
+        }
+        return null;
+    }
 
-          }
-        });
+    public CompletableFuture<Boolean> updateWalletValueAsync(UUID key, BigDecimal value) {
+        return CompletableFuture.supplyAsync(() -> updateWalletValue(key, value));
+    }
+
+    public Boolean updateWalletValue(UUID key, BigDecimal value) {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
+            preparedStatement.setObject(1, value);
+            preparedStatement.setObject(2, key.toString());
+            preparedStatement.executeUpdate();
+            return true;
+        } catch(Exception e) {
+            economyPlugin.getLogger().log(Level.WARNING,
+                "Alguma coisa deu errada na query");
+            return false;
+        }
+    }
+
+    public CompletableFuture<Wallet> saveWalletAsync(Wallet wallet) {
+        return CompletableFuture.supplyAsync(() -> saveWallet(wallet));
+    }
+
+    public Wallet saveWallet(Wallet wallet) {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
+            preparedStatement.setObject(1, wallet.getUuid().toString());
+            preparedStatement.setObject(2, wallet.getBalance());
+            preparedStatement.executeUpdate();
+            return wallet;
+        } catch(Exception e) {
+            economyPlugin.getLogger().log(Level.WARNING,
+                "Alguma coisa deu errada na query");
+        }
+        return null;
     }
 }

@@ -39,10 +39,6 @@ public class WalletCommand extends Command {
             }
 
             OfflinePlayer playerReceiver = Bukkit.getOfflinePlayer(args[1]);
-            if (playerReceiver == null) {
-                commandSender.sendMessage("O usuário está off");
-                return false;
-            }
             if (args.length == 2) {
                 Player playerSender = (Player) commandSender;
                 BigDecimal convertedValue;
