@@ -44,7 +44,7 @@ public class WalletService {
             economyPlugin.walletRepository.updateWallet(walletSender.getUuid(), walletSender.getBalance());
 
             walletReceiver.setBalance(walletReceiver.getBalance().add(value));
-            economyPlugin.walletRepository.updateWallet(walletReceiver.getUuid(), walletSender.getBalance());
+            economyPlugin.walletRepository.updateWallet(walletReceiver.getUuid(), walletReceiver.getBalance());
             return true;
         }, executor);
     }

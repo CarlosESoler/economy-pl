@@ -21,8 +21,12 @@ public class WalletCommand extends Command {
         this.economyPlugin = economyPlugin;
     }
 
-    private void showMoney(CommandSender commandSender, Player player) {
+    private void showMoney(CommandSender commandSender, OfflinePlayer player) {
         economyPlugin.walletService.fetchWallet(player.getUniqueId()).thenAccept((wallet) -> {
+            if(wallet == null) {
+                commandSender.sendMessage("O jogador não tem carteira!");
+                return;
+            }
             commandSender.sendMessage("O money é: " + wallet.getBalance().toString());
         });
     }
@@ -43,15 +47,20 @@ public class WalletCommand extends Command {
                 commandSender.sendMessage("Insira a quantidade a ser enviada.");
                 return false;
             }
+            if(ParserUtils.parseToBigDecimal(args[2]).compareTo(BigDecimal.ZERO) <= 0 ) {
+                commandSender.sendMessage("Você não pode enviar valores abaixo de 0 ou negativos...");
+                return false;
+            }
             if(args.length == 3) {
                 OfflinePlayer playerReceiver = Bukkit.getOfflinePlayer(args[1]);
                 Player playerSender = (Player) commandSender;
                 BigDecimal convertedValue = ParserUtils.parseToBigDecimal(args[2]);
                 economyPlugin.walletService.sendMoney(playerSender, playerReceiver.getUniqueId(), convertedValue).whenComplete((hasCompleted, throwable) -> {
                     if(!hasCompleted) {
-                        Bukkit.getLogger().log(Level.INFO,
-                            "Aconteceu algum erro ao realizar a transação");
+                        return;
                     }
+                    playerSender.sendMessage("Você enviou: " + convertedValue);
+                    playerReceiver.getPlayer().sendMessage("Você recebeu: " + convertedValue);
                 });
                 return true;
             }
@@ -59,7 +68,7 @@ public class WalletCommand extends Command {
 
         if (args[0].equalsIgnoreCase("set")) {
             if (!commandSender.hasPermission("set")) {
-                commandSender.sendMessage("Você não tem permissão para fazer isso!.");
+                commandSender.sendMessage("Você não tem permissão para fazer isso!");
                 return false;
             }
             if(args.length == 1) {
@@ -84,9 +93,10 @@ public class WalletCommand extends Command {
         }
         OfflinePlayer playerToSeeMoney = Bukkit.getOfflinePlayer(args[0]);
         if(playerToSeeMoney != null) {
-            showMoney(commandSender, (Player) playerToSeeMoney);
+            showMoney(commandSender, playerToSeeMoney);
             return true;
         }
+        commandSender.sendMessage("A estrutura do seu comando está incorreta.");
         return false;
     }
 }
