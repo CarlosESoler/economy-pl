@@ -1,4 +1,4 @@
-package org.economy.datautils.database;
+package org.economy.database;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;

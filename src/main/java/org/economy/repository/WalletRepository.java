@@ -65,11 +65,11 @@ public class WalletRepository {
         return null;
     }
 
-    public CompletableFuture<Boolean> updateWalletValueAsync(UUID key, BigDecimal value) {
-        return CompletableFuture.supplyAsync(() -> updateWalletValue(key, value));
+    public CompletableFuture<Boolean> updateWalletAsync(UUID key, BigDecimal value) {
+        return CompletableFuture.supplyAsync(() -> updateWallet(key, value));
     }
 
-    public Boolean updateWalletValue(UUID key, BigDecimal value) {
+    public Boolean updateWallet(UUID key, BigDecimal value) {
         try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(UPDATE_WALLET_VALUE_QUERY)) {
             preparedStatement.setObject(1, value);
             preparedStatement.setObject(2, key.toString());

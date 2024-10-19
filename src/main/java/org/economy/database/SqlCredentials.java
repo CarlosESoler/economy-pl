@@ -1,4 +1,4 @@
-package org.economy.datautils.database;
+package org.economy.database;
 
 public record SqlCredentials(
          String host,

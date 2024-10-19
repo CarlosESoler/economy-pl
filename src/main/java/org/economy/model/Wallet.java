@@ -1,7 +1,6 @@
 package org.economy.model;
 
 import lombok.Data;
-import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.economy.parser.ParserUtils;
 
@@ -23,7 +22,7 @@ public class Wallet {
     public static Wallet parseFromResultSet(ResultSet resultSet) {
         try {
             return new Wallet(UUID.fromString(resultSet.getString(1)), ParserUtils.parseToBigDecimal(resultSet.getString(2)));
-        } catch(Exception e) {
+        } catch (Exception e) {
             Bukkit.getLogger().log(Level.WARNING, "Algo deu errado no parse");
             return null;
         }

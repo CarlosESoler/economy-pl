@@ -1,4 +1,4 @@
-package org.economy.datautils.database;
+package org.economy.database;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import java.sql.Connection;

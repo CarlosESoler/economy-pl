@@ -9,7 +9,10 @@ import org.economy.model.Wallet;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class WalletService {
@@ -38,12 +41,20 @@ public class WalletService {
             }
 
             walletSender.setBalance(walletSender.getBalance().subtract(value));
-            economyPlugin.walletRepository.updateWalletValue(walletSender.getUuid(), walletSender.getBalance());
+            economyPlugin.walletRepository.updateWallet(walletSender.getUuid(), walletSender.getBalance());
 
             walletReceiver.setBalance(walletReceiver.getBalance().add(value));
-            economyPlugin.walletRepository.updateWalletValue(walletReceiver.getUuid(), walletSender.getBalance());
+            economyPlugin.walletRepository.updateWallet(walletReceiver.getUuid(), walletSender.getBalance());
             return true;
         }, executor);
+    }
+
+    public CompletableFuture<Boolean> updateWalletAsync(Wallet wallet) {
+        return economyPlugin.walletRepository.updateWalletAsync(wallet.getUuid(), wallet.getBalance());
+    }
+
+    public Boolean updateWallet(Wallet wallet) {
+        return economyPlugin.walletRepository.updateWallet(wallet.getUuid(), wallet.getBalance());
     }
 
 

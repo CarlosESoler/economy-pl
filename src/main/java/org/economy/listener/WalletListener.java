@@ -26,7 +26,7 @@ public class WalletListener implements Listener {
                 return;
             }
             if(wallet == null) {
-                Wallet newWallet = new Wallet(event.getPlayer().getUniqueId(), new BigDecimal(0));
+                Wallet newWallet = new Wallet(event.getPlayer().getUniqueId(), BigDecimal.ZERO);
                 economyPlugin.walletService.saveWallet(newWallet);
                 return;
             }

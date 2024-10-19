@@ -3,7 +3,6 @@ package org.economy.parser;
 import org.bukkit.Bukkit;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.util.logging.Level;
 
 public class ParserUtils {
