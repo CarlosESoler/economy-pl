@@ -7,9 +7,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.economy.EconomyPlugin;
+import org.economy.model.Wallet;
 import org.economy.parser.ParserUtils;
 
 import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public class WalletCommand extends Command {
@@ -52,18 +54,36 @@ public class WalletCommand extends Command {
                 return false;
             }
             if(args.length == 3) {
-                OfflinePlayer playerReceiver = Bukkit.getOfflinePlayer(args[1]);
-                Player playerSender = (Player) commandSender;
-                BigDecimal convertedValue = ParserUtils.parseToBigDecimal(args[2]);
-                economyPlugin.walletService.sendMoney(playerSender, playerReceiver.getUniqueId(), convertedValue).whenComplete((hasCompleted, throwable) -> {
-                    if(!hasCompleted) {
-                        return;
-                    }
-                    playerSender.sendMessage("Você enviou: " + convertedValue);
-                    playerReceiver.getPlayer().sendMessage("Você recebeu: " + convertedValue);
+                CompletableFuture.runAsync(() -> {
+                    OfflinePlayer playerReceiver = Bukkit.getOfflinePlayer(args[1]);
+                    Player playerSender = (Player) commandSender;
+                    BigDecimal convertedValue = ParserUtils.parseToBigDecimal(args[2]);
+                    economyPlugin.walletService.sendMoney(playerSender, playerReceiver.getUniqueId(), convertedValue).whenComplete((hasCompleted, throwable) -> {
+                        if(throwable != null) {
+                            Throwables.propagate(throwable);
+                            return;
+                        }
+                        if(!hasCompleted) {
+                            return;
+                        }
+                        playerSender.sendMessage("Você enviou: " + convertedValue);
+                        playerReceiver.getPlayer().sendMessage("Você recebeu: " + convertedValue);
+                    });
                 });
                 return true;
             }
+        }
+
+        if(args[0].equalsIgnoreCase("top")) {
+            economyPlugin.walletService.fetchTopTenAsync().thenAccept((walletList) -> {
+                commandSender.sendMessage("TOP 10");
+                for (int i = 0; i < walletList.size(); i++) {
+                    Wallet wallet = walletList.get(i);
+                    commandSender.sendMessage((i + 1) + " - " + Bukkit.getOfflinePlayer(wallet.getUuid()).getName() + " - " + wallet.getBalance());
+                }
+
+            });
+            return true;
         }
 
         if (args[0].equalsIgnoreCase("set")) {
@@ -84,18 +104,25 @@ public class WalletCommand extends Command {
                 economyPlugin.walletService.fetchWallet(playerWallet.getUniqueId()).thenAccept((wallet) -> {
                     wallet.setBalance(ParserUtils.parseToBigDecimal(args[2]));
                     if(economyPlugin.walletService.updateWallet(wallet)) {
-                        commandSender.sendMessage("Money setado, balance atual da carteira é: " + wallet.getBalance().toString());
+                        commandSender.sendMessage("Money setado, balance atual da carteira é: " + wallet.getBalance());
                     }
                 });
                 return true;
             }
             return false;
         }
-        OfflinePlayer playerToSeeMoney = Bukkit.getOfflinePlayer(args[0]);
-        if(playerToSeeMoney != null) {
-            showMoney(commandSender, playerToSeeMoney);
+        if(args.length == 1) {
+            CompletableFuture.runAsync(() -> {
+                OfflinePlayer playerToSeeMoney = Bukkit.getOfflinePlayer(args[0]);
+                if(playerToSeeMoney == null) {
+                    commandSender.sendMessage("O jogador não foi encontrado!");
+                    return;
+                }
+                showMoney(commandSender, playerToSeeMoney);
+            });
             return true;
         }
+
         commandSender.sendMessage("A estrutura do seu comando está incorreta.");
         return false;
     }

@@ -7,12 +7,8 @@ import org.economy.EconomyPlugin;
 import org.economy.model.Wallet;
 
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 public class WalletService {
@@ -22,6 +18,11 @@ public class WalletService {
     private ExecutorService executor = Executors.newCachedThreadPool();
 
     private final Map<UUID, Wallet> cachedWallet = new ConcurrentHashMap<>();
+
+    private final List<Wallet> cachedTopTenWallets = new LinkedList<>();
+
+    private final long expirationTime = TimeUnit.MINUTES.toMillis(5);
+    private long lastUpdate;
 
     public WalletService(EconomyPlugin economyPlugin) {
         this.economyPlugin = economyPlugin;
@@ -33,6 +34,10 @@ public class WalletService {
             Wallet walletReceiver = fetchWallet(playerReceiverKey).join();
             if (walletReceiver == null) {
                 playerSender.sendMessage("O usuário que você está enviando o dinheiro não possui carteira.");
+                return false;
+            }
+            if(walletSender.getUuid().equals(walletReceiver.getUuid())) {
+                playerSender.sendMessage("Você não pode enviar money pra você mesmo!");
                 return false;
             }
             if (walletSender.getBalance().compareTo(value) < 0) {
@@ -47,6 +52,21 @@ public class WalletService {
             economyPlugin.walletRepository.updateWallet(walletReceiver.getUuid(), walletReceiver.getBalance());
             return true;
         }, executor);
+    }
+
+    public CompletableFuture<List<Wallet>> fetchTopTenAsync() {
+        if (!hasCachedExpired()) {
+            return CompletableFuture.completedFuture(cachedTopTenWallets);
+        }
+        return economyPlugin.walletRepository.fetchTopTenAsync().thenApply((wallets) -> {
+            cachedTopTenWallets.clear();
+            cachedTopTenWallets.addAll(wallets);
+            setLastUpdate();
+            return wallets;
+        });
+    }
+    public List<Wallet> fetchTopTen() {
+        return economyPlugin.walletRepository.fetchTopTen();
     }
 
     public CompletableFuture<Boolean> updateWalletAsync(Wallet wallet) {
@@ -87,5 +107,13 @@ public class WalletService {
 
     public void removeWalletOnCache(UUID key) {
         cachedWallet.remove(key);
+    }
+
+    private boolean hasCachedExpired() {
+        return System.currentTimeMillis() - lastUpdate > expirationTime;
+    }
+
+    private void setLastUpdate() {
+        this.lastUpdate = System.currentTimeMillis();
     }
 }

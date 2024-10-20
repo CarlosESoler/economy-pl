@@ -7,9 +7,7 @@ import org.economy.model.Wallet;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
@@ -21,6 +19,7 @@ public class WalletRepository {
     private static final String SELECT_ALL_QUERY = "SELECT * FROM WALLET";
     private static final String UPDATE_WALLET_VALUE_QUERY = "UPDATE WALLET SET BALANCE = ? WHERE uuid = ?";
     private static final String INSERT_WALLET_QUERY = "REPLACE INTO WALLET VALUES(?, ?)";
+    private static final String SELECT_TOP_TEN_QUERY = "SELECT * FROM WALLET ORDER BY BALANCE DESC LIMIT 10";
 
     public WalletRepository(EconomyPlugin economyPlugin) {
         this.economyPlugin = economyPlugin;
@@ -97,5 +96,25 @@ public class WalletRepository {
                 "Alguma coisa deu errada na query", e);
         }
         return false;
+    }
+
+    public CompletableFuture<List<Wallet>> fetchTopTenAsync() {
+        return CompletableFuture.supplyAsync(() -> fetchTopTen());
+    }
+
+    public List<Wallet> fetchTopTen() {
+        try(PreparedStatement preparedStatement = economyPlugin.mySqlStorage.getConnection().prepareStatement(SELECT_TOP_TEN_QUERY)) {
+            try(ResultSet resultSet = preparedStatement.executeQuery()) {
+                List<Wallet> walletsTopTen = new LinkedList<>();
+                while(resultSet.next()) {
+                    walletsTopTen.add(Wallet.parseFromResultSet(resultSet));
+                }
+                return walletsTopTen;
+            }
+        } catch (Exception e) {
+            economyPlugin.getLogger().log(Level.WARNING,
+                "Alguma coisa deu errada na query");
+        }
+        return null;
     }
 }
